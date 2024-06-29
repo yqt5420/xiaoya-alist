@@ -1,0 +1,50 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+# shellcheck disable=SC2154
+
+Green="\033[32m"
+Red="\033[31m"
+Yellow='\033[33m'
+Font="\033[0m"
+INFO="[${Green}INFO${Font}]"
+ERROR="[${Red}ERROR${Font}]"
+WARN="[${Yellow}WARN${Font}]"
+function INFO() {
+    echo -e "${INFO} ${1}"
+}
+function ERROR() {
+    echo -e "${ERROR} ${1}"
+}
+function WARN() {
+    echo -e "${WARN} ${1}"
+}
+
+if [ ! -d /app ]; then
+    mkdir /app
+fi
+cd /app || exit
+
+crontab -r
+
+CRON_COMMAND="bash -c \"\$(curl -k https://ddsrem.com/xiaoya/xiaoya_notify.sh)\" -s ${parameters}"
+
+echo -e "${CRON} ${CRON_COMMAND} >> /config/cron.log 2>&1" > /app/cronjob.list
+
+COMMAND_1="${parameters//\--auto_update_all_pikpak=yes/--auto_update_all_pikpak=no}"
+if [[ $COMMAND_1 == *"--force_update_config"* ]]; then
+    if [[ $COMMAND_1 == *"--force_update_config=no"* ]]; then
+        COMMAND_1="${COMMAND_1/--force_update_config=no/--force_update_config=yes}"
+    fi
+else
+    COMMAND_1="$COMMAND_1 --force_update_config=yes"
+fi
+echo -e "bash -c \"\$(curl -k https://ddsrem.com/xiaoya/xiaoya_notify.sh | head -n -2 && echo detection_config_update)\" -s ${COMMAND_1}" > /app/command.sh
+
+INFO "$(cat /app/cronjob.list)"
+
+if crontab /app/cronjob.list; then
+    INFO "定时任务添加成功"
+else
+    ERROR "定时任务添加失败"
+    exit 1
+fi

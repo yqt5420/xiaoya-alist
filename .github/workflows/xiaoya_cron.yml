@@ -1,4 +1,4 @@
-name: xiaoya emby library
+name: xiaoya cron
 
 on:
   workflow_dispatch:
@@ -6,8 +6,8 @@ on:
     branches:
       - master
     paths:
-      - "emby_library/**"
-      - ".github/workflows/emby_library.yml"
+      - "cron/**"
+      - ".github/workflows/xiaoya_cron.yml"
 
 jobs:
   build:
@@ -22,7 +22,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/xiaoya-emby-library
+          images: ${{ secrets.DOCKER_USERNAME }}/xiaoya-cron
           tags: |
             type=raw,value=latest
 
@@ -45,11 +45,12 @@ jobs:
         name: Build Image
         uses: docker/build-push-action@v6
         with:
-          context: ./emby_library
-          file: emby_library/Dockerfile
+          context: ./cron
+          file: cron/Dockerfile
           platforms: |
             linux/amd64
             linux/arm64/v8
+            linux/arm/v7
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -60,6 +61,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: ${{ secrets.DOCKER_USERNAME }}/xiaoya-emby-library
+          repository: ${{ secrets.DOCKER_USERNAME }}/xiaoya-cron
           short-description: 小雅Alist的相关周边
           readme-filepath: ./README.md
